@@ -1,0 +1,1 @@
+<!doctype html><html><body><h1>MailFlow Login</h1><form method="post" action="{{ route('login.store') }}">@csrf<label>Email <input name="email" type="email" value="{{ old('email') }}" required></label><label>Password <input name="password" type="password" required></label><button>Sign in</button></form>@error('email')<p>{{ $message }}</p>@enderror</body></html>

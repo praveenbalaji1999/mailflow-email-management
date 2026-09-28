@@ -1,0 +1,119 @@
+services:
+
+  # ─── PHP + Apache application ────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mailflow_app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      APP_NAME: MailFlow
+      APP_URL: http://localhost:8080
+      APP_DEBUG: "true"
+      DB_HOST: db           # ← must match the service name below
+      DB_PORT: "3306"
+      DB_NAME: email_management
+      DB_USER: mailflow
+      DB_PASS: mailflow123
+      SESSION_NAME: mailflow_session
+      QUEUE_BATCH_SIZE: "20"
+      QUEUE_MAX_ATTEMPTS: "3"
+    volumes:
+      - ./uploads:/var/www/html/uploads   # persist attachments
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - mailflow
+
+  # ─── MySQL 8 ─────────────────────────────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: mailflow_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: email_management
+      MYSQL_USER: mailflow
+      MYSQL_PASSWORD: mailflow123
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "mailflow", "-pmailflow123"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mailflow
+
+  # ─── Mailpit — local SMTP catcher (catches all outgoing email) ───────────────
+  #
+  #  Instead of sending real emails during development, Mailpit intercepts them.
+  #  Open http://localhost:8025 to see all sent emails in a nice web UI.
+  #
+  #  In the app go to SMTP Settings and use:
+  #    Host:       mailpit
+  #    Port:       1025
+  #    Encryption: none
+  #    Username:   (leave blank)
+  #    Password:   (leave blank)
+  #    From email: admin@mailflow.local
+  #
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailflow_mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"   # Mailpit web UI
+      - "1025:1025"   # SMTP port (used by the PHP app)
+    networks:
+      - mailflow
+
+  # ─── Queue worker (cron) ─────────────────────────────────────────────────────
+  #
+  #  Processes the email_queue every 60 seconds automatically.
+  #  Without this, emails are queued but never dispatched.
+  #
+  queue_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mailflow_queue
+    restart: unless-stopped
+    command: >
+      sh -c "
+        echo 'Queue worker starting...';
+        while true; do
+          php /var/www/html/cron/process-email-queue.php;
+          sleep 60;
+        done
+      "
+    environment:
+      APP_NAME: MailFlow
+      APP_URL: http://localhost:8080
+      APP_DEBUG: "true"
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: email_management
+      DB_USER: mailflow
+      DB_PASS: mailflow123
+      SESSION_NAME: mailflow_session
+      QUEUE_BATCH_SIZE: "20"
+      QUEUE_MAX_ATTEMPTS: "3"
+    volumes:
+      - ./uploads:/var/www/html/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - mailflow
+
+volumes:
+  db_data:
+
+networks:
+  mailflow:
+    driver: bridge

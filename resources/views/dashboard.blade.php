@@ -1,0 +1,1 @@
+@extends('layouts.app') @section('content')<h1>Dashboard</h1><p>{{ $totalRecipients }} recipients · {{ $sentEmails }} emails sent</p><h2>Recent campaigns</h2><ul>@foreach($recentCampaigns as $campaign)<li>{{ $campaign->campaign_name }} — {{ $campaign->status }}</li>@endforeach</ul>@endsection

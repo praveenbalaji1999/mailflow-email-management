@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email History — MailFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="assets/css/style.css" rel="stylesheet">
+</head>
+<body>
+  <div class="app-wrapper">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon"><i class="bi bi-envelope-fill"></i></div>
+        <div class="sidebar-brand-text">
+          <h1>MailFlow</h1>
+          <span>Email Management</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="dashboard.html" class="sidebar-link"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a>
+        <a href="recipients.html" class="sidebar-link"><i class="bi bi-people"></i><span>Recipients</span></a>
+        <a href="groups.html" class="sidebar-link"><i class="bi bi-collection"></i><span>Groups</span></a>
+        <a href="compose.html" class="sidebar-link"><i class="bi bi-pencil-square"></i><span>Compose Email</span></a>
+        <a href="campaigns.html" class="sidebar-link"><i class="bi bi-megaphone"></i><span>Campaigns</span></a>
+        <a href="email-history.html" class="sidebar-link active"><i class="bi bi-clock-history"></i><span>Email History</span></a>
+        <a href="smtp-settings.html" class="sidebar-link"><i class="bi bi-server"></i><span>SMTP Settings</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="smtp-settings.html" class="sidebar-link"><i class="bi bi-gear"></i><span>Settings</span></a>
+        <a href="#" class="sidebar-link" data-logout><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="top-navbar">
+        <div class="topbar-left">
+          <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-label="Toggle sidebar">
+            <i class="bi bi-list"></i>
+          </button>
+          <h1 class="page-title-nav">Email History</h1>
+        </div>
+        <div class="topbar-right">
+          <button class="btn-icon" type="button" data-bs-toggle="tooltip" title="Notifications" aria-label="Notifications">
+            <i class="bi bi-bell"></i>
+            <span class="badge-dot"></span>
+          </button>
+          <div class="dropdown profile-dropdown">
+            <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+              <div class="avatar">AU</div>
+              <div class="profile-meta">
+                <span class="name">Admin User</span>
+                <span class="role">Administrator</span>
+              </div>
+              <i class="bi bi-chevron-down profile-chevron"></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Profile</a></li>
+              <li><a class="dropdown-item" href="smtp-settings.html"><i class="bi bi-gear"></i> Settings</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="#" data-logout><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+
+      <main class="page-content">
+        <div class="page-header">
+          <div>
+            <h2>Email History</h2>
+            <p>Detailed log of every email delivery attempt.</p>
+          </div>
+        </div>
+
+        <div class="card-surface">
+          <div class="toolbar-row wrap">
+            <div class="search-box">
+              <i class="bi bi-search"></i>
+              <input type="search" class="form-control" placeholder="Search recipient or subject..." aria-label="Search history">
+            </div>
+            <div class="toolbar-filters">
+              <input type="date" class="form-control form-control-sm" value="2026-09-01" aria-label="From date">
+              <span class="text-muted small">to</span>
+              <input type="date" class="form-control form-control-sm" value="2026-09-28" aria-label="To date">
+              <select class="form-select form-select-sm" aria-label="Status filter">
+                <option selected>All Status</option>
+                <option>Sent</option>
+                <option>Pending</option>
+                <option>Failed</option>
+              </select>
+              <select class="form-select form-select-sm" aria-label="Campaign filter">
+                <option selected>All Campaigns</option>
+                <option>Monthly Customer Update</option>
+                <option>Product Launch Announcement</option>
+                <option>HR Policy Reminder</option>
+                <option>Sales Q3 Follow-up</option>
+                <option>Welcome Series — Week 1</option>
+              </select>
+            </div>
+          </div>
+
+          <div data-skeleton class="p-3">
+            <div class="skeleton skeleton-line lg"></div>
+            <div class="skeleton skeleton-line md"></div>
+            <div class="skeleton skeleton-line lg"></div>
+            <div class="skeleton skeleton-line md"></div>
+          </div>
+
+          <div class="table-wrap" data-content style="display:none">
+            <table class="table-modern">
+              <thead>
+                <tr>
+                  <th>Recipient</th>
+                  <th>Campaign</th>
+                  <th>Subject</th>
+                  <th>Status</th>
+                  <th>Sent At</th>
+                  <th>Error</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>john.mitchell@gmail.com</td>
+                  <td>Monthly Customer Update</td>
+                  <td>Important Company Update</td>
+                  <td><span class="badge-status badge-completed">Sent</span></td>
+                  <td>Sep 28, 2026 · 09:43 AM</td>
+                  <td class="text-muted">—</td>
+                </tr>
+                <tr>
+                  <td>priya.patel@gmail.com</td>
+                  <td>Monthly Customer Update</td>
+                  <td>Important Company Update</td>
+                  <td><span class="badge-status badge-completed">Sent</span></td>
+                  <td>Sep 28, 2026 · 09:44 AM</td>
+                  <td class="text-muted">—</td>
+                </tr>
+                <tr>
+                  <td>david.okonkwo@outlook.com</td>
+                  <td>Monthly Customer Update</td>
+                  <td>Important Company Update</td>
+                  <td><span class="badge-status badge-failed">Failed</span></td>
+                  <td>Sep 28, 2026 · 09:46 AM</td>
+                  <td><span class="error-text" data-bs-toggle="tooltip" title="Mailbox does not exist">550 User unknown</span></td>
+                </tr>
+                <tr>
+                  <td>sarah.chen@hr.company.com</td>
+                  <td>Product Launch Announcement</td>
+                  <td>Introducing our newest features</td>
+                  <td><span class="badge-status badge-processing">Pending</span></td>
+                  <td>—</td>
+                  <td class="text-muted">—</td>
+                </tr>
+                <tr>
+                  <td>marcus.webb@sales.company.com</td>
+                  <td>Product Launch Announcement</td>
+                  <td>Introducing our newest features</td>
+                  <td><span class="badge-status badge-completed">Sent</span></td>
+                  <td>Sep 27, 2026 · 02:15 PM</td>
+                  <td class="text-muted">—</td>
+                </tr>
+                <tr>
+                  <td>aisha.rahman@gmail.com</td>
+                  <td>Sales Q3 Follow-up</td>
+                  <td>Quarterly pipeline check-in</td>
+                  <td><span class="badge-status badge-failed">Failed</span></td>
+                  <td>Sep 24, 2026 · 11:02 AM</td>
+                  <td><span class="error-text" data-bs-toggle="tooltip" title="Connection timed out">SMTP timeout</span></td>
+                </tr>
+                <tr>
+                  <td>elena.rossi@premium.io</td>
+                  <td>Welcome Series — Week 1</td>
+                  <td>Getting started with MailFlow</td>
+                  <td><span class="badge-status badge-completed">Sent</span></td>
+                  <td>Sep 22, 2026 · 08:30 AM</td>
+                  <td class="text-muted">—</td>
+                </tr>
+                <tr>
+                  <td>kumar.sharma@company.com</td>
+                  <td>Welcome Series — Week 1</td>
+                  <td>Getting started with MailFlow</td>
+                  <td><span class="badge-status badge-completed">Sent</span></td>
+                  <td>Sep 22, 2026 · 08:31 AM</td>
+                  <td class="text-muted">—</td>
+                </tr>
+                <tr>
+                  <td>james.wilson@client.co</td>
+                  <td>Premium Renewal Offer</td>
+                  <td>Exclusive renewal discount</td>
+                  <td><span class="badge-status badge-failed">Failed</span></td>
+                  <td>Sep 18, 2026 · 04:12 PM</td>
+                  <td><span class="error-text">452 Quota exceeded</span></td>
+                </tr>
+                <tr>
+                  <td>nina.volkov@agency.com</td>
+                  <td>HR Policy Reminder</td>
+                  <td>Updated remote work guidelines</td>
+                  <td><span class="badge-status badge-processing">Pending</span></td>
+                  <td>—</td>
+                  <td class="text-muted">—</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination-bar" data-content style="display:none">
+            <span class="pagination-info">Showing <strong>1–10</strong> of <strong>8,577</strong></span>
+            <nav aria-label="History pagination">
+              <ul class="pagination pagination-sm mb-0">
+                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item"><a class="page-link" href="#">…</a></li>
+                <li class="page-item"><a class="page-link" href="#">858</a></li>
+                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
