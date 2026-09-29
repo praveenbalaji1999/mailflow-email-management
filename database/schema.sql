@@ -16,7 +16,6 @@ DROP TABLE IF EXISTS campaign_recipients;
 DROP TABLE IF EXISTS campaigns;
 DROP TABLE IF EXISTS group_members;
 DROP TABLE IF EXISTS `groups`;
-DROP TABLE IF EXISTS unsubscribes;
 DROP TABLE IF EXISTS recipients;
 DROP TABLE IF EXISTS smtp_settings;
 DROP TABLE IF EXISTS admins;
@@ -36,12 +35,10 @@ CREATE TABLE recipients (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(150) NOT NULL,
   email VARCHAR(190) NOT NULL,
-  status ENUM('active', 'inactive', 'unsubscribed', 'bounced') NOT NULL DEFAULT 'active',
-  unsubscribe_token VARCHAR(64) NULL,
+  status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_recipients_email (email),
-  UNIQUE KEY uq_recipients_token (unsubscribe_token),
   KEY idx_recipients_status (status),
   KEY idx_recipients_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -107,7 +104,6 @@ CREATE TABLE email_queue (
   campaign_id INT UNSIGNED NOT NULL,
   campaign_recipient_id INT UNSIGNED NOT NULL,
   recipient_email VARCHAR(190) NOT NULL,
-  recipient_name VARCHAR(150) NOT NULL DEFAULT '',
   subject VARCHAR(255) NOT NULL,
   message MEDIUMTEXT NOT NULL,
   attachment_path VARCHAR(500) NULL,
@@ -123,17 +119,6 @@ CREATE TABLE email_queue (
   KEY idx_eq_scheduled (scheduled_at),
   CONSTRAINT fk_eq_campaign FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
   CONSTRAINT fk_eq_cr FOREIGN KEY (campaign_recipient_id) REFERENCES campaign_recipients(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE unsubscribes (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  email VARCHAR(190) NOT NULL,
-  token VARCHAR(64) NOT NULL,
-  campaign_id INT UNSIGNED NULL,
-  unsubscribed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_unsub_email (email),
-  KEY idx_unsub_token (token),
-  CONSTRAINT fk_unsub_campaign FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE email_history (

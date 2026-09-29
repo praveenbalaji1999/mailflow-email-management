@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 /**
@@ -9,10 +8,10 @@ declare(strict_types=1);
  *   * * * * * php /path/to/cron/process-email-queue.php
  */
 
-require_once dirname(__DIR__).'/config/config.php';
-require_once dirname(__DIR__).'/config/database.php';
-require_once dirname(__DIR__).'/config/mail.php';
-require_once dirname(__DIR__).'/includes/functions.php';
+require_once dirname(__DIR__) . '/config/config.php';
+require_once dirname(__DIR__) . '/config/database.php';
+require_once dirname(__DIR__) . '/config/mail.php';
+require_once dirname(__DIR__) . '/includes/functions.php';
 
 function process_email_queue(?int $batchSize = null): int
 {
@@ -26,8 +25,8 @@ function process_email_queue(?int $batchSize = null): int
         "SELECT * FROM email_queue
          WHERE status = 'pending' AND attempts < ?
          ORDER BY id ASC
-         LIMIT ".(int) $batchSize.'
-         FOR UPDATE'
+         LIMIT " . (int) $batchSize . "
+         FOR UPDATE"
     );
     $stmt->execute([$maxAttempts]);
     $rows = $stmt->fetchAll();
@@ -40,8 +39,8 @@ function process_email_queue(?int $batchSize = null): int
 
     foreach ($rows as $row) {
         $attach = null;
-        if (! empty($row['attachment_path'])) {
-            $attach = dirname(__DIR__).'/'.ltrim((string) $row['attachment_path'], '/');
+        if (!empty($row['attachment_path'])) {
+            $attach = dirname(__DIR__) . '/' . ltrim((string) $row['attachment_path'], '/');
         }
 
         $result = send_email_message(
@@ -70,7 +69,7 @@ function process_email_queue(?int $batchSize = null): int
             $error = mb_substr((string) $result['error'], 0, 500);
             $failPermanently = ((int) $row['attempts'] + 1) >= $maxAttempts;
             $pdo->prepare(
-                'UPDATE email_queue SET status = ?, last_error = ?, processed_at = NOW() WHERE id = ?'
+                "UPDATE email_queue SET status = ?, last_error = ?, processed_at = NOW() WHERE id = ?"
             )->execute([$failPermanently ? 'failed' : 'pending', $error, (int) $row['id']]);
 
             if ($failPermanently) {
@@ -110,14 +109,13 @@ function finalize_campaign_status(int $campaignId): void
     if ($pending > 0) {
         $pdo->prepare("UPDATE campaigns SET status = 'processing' WHERE id = ? AND status <> 'cancelled'")
             ->execute([$campaignId]);
-
         return;
     }
 
     $c = $pdo->prepare('SELECT total_sent, total_failed FROM campaigns WHERE id = ?');
     $c->execute([$campaignId]);
     $row = $c->fetch();
-    if (! $row) {
+    if (!$row) {
         return;
     }
 
@@ -127,5 +125,5 @@ function finalize_campaign_status(int $campaignId): void
 }
 
 if (PHP_SAPI === 'cli' && isset($_SERVER['SCRIPT_FILENAME']) && realpath($_SERVER['SCRIPT_FILENAME']) === realpath(__FILE__)) {
-    echo 'Processed '.process_email_queue()." email(s)\n";
+    echo 'Processed ' . process_email_queue() . " email(s)\n";
 }

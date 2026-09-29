@@ -1,118 +1,98 @@
 <?php
+declare(strict_types=1);
 
-return [
+/**
+ * Mail / PHPMailer helpers.
+ */
 
-    /*
-    |--------------------------------------------------------------------------
-    | Default Mailer
-    |--------------------------------------------------------------------------
-    |
-    | This option controls the default mailer that is used to send all email
-    | messages unless another mailer is explicitly specified when sending
-    | the message. All additional mailers can be configured within the
-    | "mailers" array. Examples of each type of mailer are provided.
-    |
-    */
+use PHPMailer\PHPMailer\Exception as MailException;
+use PHPMailer\PHPMailer\PHPMailer;
 
-    'default' => env('MAIL_MAILER', 'log'),
+require_once __DIR__ . '/database.php';
 
-    /*
-    |--------------------------------------------------------------------------
-    | Mailer Configurations
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure all of the mailers used by your application plus
-    | their respective settings. Several examples have been configured for
-    | you and you are free to add your own as your application requires.
-    |
-    | Laravel supports a variety of mail "transport" drivers that can be used
-    | when delivering an email. You may specify which one you're using for
-    | your mailers below. You may also add additional mailers if needed.
-    |
-    | Supported: "smtp", "sendmail", "mailgun", "ses", "ses-v2",
-    |            "postmark", "resend", "log", "array",
-    |            "failover", "roundrobin"
-    |
-    */
+function get_smtp_settings(): ?array
+{
+    $stmt = db()->query('SELECT * FROM smtp_settings ORDER BY id ASC LIMIT 1');
+    $row = $stmt->fetch();
+    return $row ?: null;
+}
 
-    'mailers' => [
+function create_mailer(?array $smtp = null): PHPMailer
+{
+    $smtp ??= get_smtp_settings();
+    if (!$smtp) {
+        throw new RuntimeException('SMTP settings are not configured.');
+    }
 
-        'smtp' => [
-            'transport' => 'smtp',
-            'scheme' => env('MAIL_SCHEME'),
-            'url' => env('MAIL_URL'),
-            'host' => env('MAIL_HOST', '127.0.0.1'),
-            'port' => env('MAIL_PORT', 2525),
-            'username' => env('MAIL_USERNAME'),
-            'password' => env('MAIL_PASSWORD'),
-            'timeout' => null,
-            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
-        ],
+    $mail = new PHPMailer(true);
+    $mail->isSMTP();
+    $mail->Host = $smtp['host'];
+    $mail->Port = (int) $smtp['port'];
+    $mail->SMTPAuth = true;
+    $mail->Username = $smtp['username'];
+    $mail->Password = $smtp['password'];
 
-        'ses' => [
-            'transport' => 'ses',
-        ],
+    $enc = strtolower((string) $smtp['encryption']);
+    if ($enc === 'tls') {
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+    } elseif ($enc === 'ssl') {
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+    } else {
+        $mail->SMTPSecure = false;
+        $mail->SMTPAutoTLS = false;
+    }
 
-        'postmark' => [
-            'transport' => 'postmark',
-            // 'message_stream_id' => env('POSTMARK_MESSAGE_STREAM_ID'),
-            // 'client' => [
-            //     'timeout' => 5,
-            // ],
-        ],
+    $mail->CharSet = 'UTF-8';
+    $mail->setFrom($smtp['from_email'], $smtp['from_name']);
+    $mail->isHTML(true);
 
-        'resend' => [
-            'transport' => 'resend',
-        ],
+    return $mail;
+}
 
-        'sendmail' => [
-            'transport' => 'sendmail',
-            'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),
-        ],
+/**
+ * @return array{ok:bool,message:string}
+ */
+function test_smtp_connection(): array
+{
+    try {
+        $smtp = get_smtp_settings();
+        if (!$smtp) {
+            return ['ok' => false, 'message' => 'No SMTP settings found.'];
+        }
 
-        'log' => [
-            'transport' => 'log',
-            'channel' => env('MAIL_LOG_CHANNEL'),
-        ],
+        $mail = create_mailer($smtp);
+        if (!$mail->smtpConnect()) {
+            return ['ok' => false, 'message' => 'Could not connect to SMTP server.'];
+        }
+        $mail->smtpClose();
+        return ['ok' => true, 'message' => 'SMTP connection successful.'];
+    } catch (Throwable $e) {
+        return ['ok' => false, 'message' => $e->getMessage()];
+    }
+}
 
-        'array' => [
-            'transport' => 'array',
-        ],
+/**
+ * Send a single email via PHPMailer.
+ *
+ * @return array{ok:bool,error:?string}
+ */
+function send_email_message(string $to, string $subject, string $htmlBody, ?string $attachmentPath = null): array
+{
+    try {
+        $mail = create_mailer();
+        $mail->clearAddresses();
+        $mail->addAddress($to);
+        $mail->Subject = $subject;
+        $mail->Body = $htmlBody;
+        $mail->AltBody = strip_tags(str_replace(['<br>', '<br/>', '<br />'], "\n", $htmlBody));
 
-        'failover' => [
-            'transport' => 'failover',
-            'mailers' => [
-                'smtp',
-                'log',
-            ],
-            'retry_after' => 60,
-        ],
+        if ($attachmentPath && is_file($attachmentPath)) {
+            $mail->addAttachment($attachmentPath);
+        }
 
-        'roundrobin' => [
-            'transport' => 'roundrobin',
-            'mailers' => [
-                'ses',
-                'postmark',
-            ],
-            'retry_after' => 60,
-        ],
-
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Global "From" Address
-    |--------------------------------------------------------------------------
-    |
-    | You may wish for all emails sent by your application to be sent from
-    | the same address. Here you may specify a name and address that is
-    | used globally for all emails that are sent by your application.
-    |
-    */
-
-    'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
-    ],
-
-];
+        $mail->send();
+        return ['ok' => true, 'error' => null];
+    } catch (MailException | Throwable $e) {
+        return ['ok' => false, 'error' => $e->getMessage()];
+    }
+}

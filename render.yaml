@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: email-management-ui
+    runtime: php
+    buildCommand: composer install --no-dev --optimize-autoloader
+    startCommand: php -S 0.0.0.0:$PORT -t /opt/render/project/src
+    envVars:
+      - key: APP_NAME
+        value: MailFlow
+      - key: APP_URL
+        sync: false
+      - key: APP_DEBUG
+        value: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: 3306
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASS
+        sync: false
+      - key: SESSION_NAME
+        value: mailflow_session
+      - key: QUEUE_BATCH_SIZE
+        value: 20
+      - key: QUEUE_MAX_ATTEMPTS
+        value: 3

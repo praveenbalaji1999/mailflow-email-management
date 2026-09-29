@@ -1,0 +1,54 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * MailFlow PDO database connection.
+ *
+ * This custom PHP application intentionally does not depend on a Laravel
+ * application container or Laravel path helpers.
+ */
+if (! defined('ROOT_PATH')) {
+    define('ROOT_PATH', dirname(__DIR__));
+}
+
+function db(): PDO
+{
+    static $pdo = null;
+
+    if ($pdo instanceof PDO) {
+        return $pdo;
+    }
+
+    $connection = (string) env('DB_CONNECTION', 'mysql');
+
+    if ($connection === 'sqlite') {
+        $database = (string) env('DB_DATABASE', ROOT_PATH.'/database/database.sqlite');
+        $dsn = 'sqlite:'.$database;
+        $username = null;
+        $password = null;
+    } else {
+        $host = (string) env('DB_HOST', '127.0.0.1');
+        $port = (string) env('DB_PORT', '3306');
+        $database = (string) env('DB_DATABASE', 'email_management');
+        $username = (string) env('DB_USERNAME', 'root');
+        $password = (string) env('DB_PASSWORD', '');
+        $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
+    }
+
+    try {
+        $pdo = new PDO($dsn, $username, $password, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ]);
+    } catch (PDOException $exception) {
+        if ((bool) env('APP_DEBUG', false)) {
+            throw new RuntimeException('Database connection failed: '.$exception->getMessage(), 0, $exception);
+        }
+
+        throw new RuntimeException('Database connection failed. Please check your configuration.', 0, $exception);
+    }
+
+    return $pdo;
+}

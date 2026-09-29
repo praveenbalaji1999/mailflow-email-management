@@ -20,13 +20,10 @@ function app_config(?string $key = null, mixed $default = null): mixed
                 'app_url' => rtrim((string) env('APP_URL', 'http://127.0.0.1:8080'), '/'),
                 'debug' => (bool) env('APP_DEBUG', true),
                 'session_name' => (string) env('SESSION_NAME', 'mailflow_session'),
-                'queue_batch_size' => (int) env('QUEUE_BATCH_SIZE', 50),
+                'queue_batch_size' => (int) env('QUEUE_BATCH_SIZE', 20),
                 'queue_max_attempts' => (int) env('QUEUE_MAX_ATTEMPTS', 3),
-                'send_delay_us' => (int) env('SEND_DELAY_US', 200000),
-                'send_rate_per_minute' => (int) env('SEND_RATE_PER_MINUTE', 0),
                 'upload_path' => ROOT_PATH.'/uploads/attachments',
                 'upload_max_bytes' => 10 * 1024 * 1024,
-                'unsubscribe_enabled' => (bool) env('UNSUBSCRIBE_ENABLED', true),
             ];
         }
     }
