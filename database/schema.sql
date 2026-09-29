@@ -21,7 +21,7 @@ CREATE TABLE admins (
   email VARCHAR(190) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  updated_at DATETIME DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE recipients (
@@ -30,7 +30,7 @@ CREATE TABLE recipients (
   email VARCHAR(190) NOT NULL,
   status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT NULL,
   UNIQUE KEY uq_recipients_email (email),
   KEY idx_recipients_status (status),
   KEY idx_recipients_name (name)
@@ -41,7 +41,7 @@ CREATE TABLE `groups` (
   name VARCHAR(150) NOT NULL,
   description TEXT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT NULL,
   UNIQUE KEY uq_groups_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -69,7 +69,7 @@ CREATE TABLE campaigns (
   total_pending INT UNSIGNED NOT NULL DEFAULT 0,
   created_by INT UNSIGNED NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT NULL,
   KEY idx_campaigns_status (status),
   KEY idx_campaigns_created (created_at),
   CONSTRAINT fk_campaigns_admin FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE SET NULL
@@ -84,7 +84,7 @@ CREATE TABLE campaign_recipients (
   sent_at DATETIME NULL,
   error_message VARCHAR(500) NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT NULL,
   KEY idx_cr_campaign (campaign_id),
   KEY idx_cr_status (status),
   KEY idx_cr_email (email),
@@ -106,7 +106,7 @@ CREATE TABLE email_queue (
   scheduled_at DATETIME NULL,
   processed_at DATETIME NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT NULL,
   KEY idx_eq_status (status),
   KEY idx_eq_campaign (campaign_id),
   KEY idx_eq_scheduled (scheduled_at),
@@ -142,10 +142,10 @@ CREATE TABLE smtp_settings (
   from_name VARCHAR(150) NOT NULL,
   from_email VARCHAR(190) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  updated_at DATETIME DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Default admin seeded by setup-db.sh / install.php
+-- Default admin
 -- Login: admin@mailflow.local / Admin@123
 INSERT INTO admins (name, email, password) VALUES
 ('Admin User', 'admin@mailflow.local', '$2y$10$4T8Ik4R8As5Liy6sf0K99e/K4Mmd27VmS0hE89GkGk0.82iEPsCu6');
@@ -159,4 +159,4 @@ INSERT INTO `groups` (name, description) VALUES
 ('Marketing', 'Marketing distribution list');
 
 INSERT INTO smtp_settings (host, port, encryption, username, password, from_name, from_email) VALUES
-('smtp.mailflow.example.com', 587, 'tls', 'admin@example.com', '', 'MailFlow', 'admin@example.com');
+('smtp.gmail.com', 587, 'tls', 'admin@example.com', '', 'MailFlow', 'admin@example.com');
