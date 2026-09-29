@@ -1,11 +1,4 @@
 -- MailFlow Email Management System
--- Database: email_management
-
-CREATE DATABASE IF NOT EXISTS email_management
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
-USE email_management;
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;

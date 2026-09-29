@@ -1,17 +1,16 @@
-FROM php:8.2-apache
+FROM php:8.3-cli
 
-# Install system dependencies and PHP extensions
+# Install required PHP extensions
 RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     unzip \
     curl \
-    && docker-php-ext-install pdo pdo_mysql zip \
-    && a2enmod rewrite \
+    && docker-php-ext-install pdo pdo_mysql \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
 WORKDIR /var/www/html
@@ -19,21 +18,11 @@ WORKDIR /var/www/html
 # Copy project files
 COPY . .
 
-# Install PHP dependencies (skip dev)
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader
 
-# Apache: allow .htaccess overrides
-RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
+# Expose port
+EXPOSE 8080
 
-# Fix permissions
-RUN chown -R www-data:www-data /var/www/html/uploads \
-    && chmod -R 775 /var/www/html/uploads
-
-# Copy entrypoint
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-EXPOSE 80
-
-ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["apache2-foreground"]
+# Start PHP built-in server
+CMD php -S 0.0.0.0:$PORT -t /var/www/html
